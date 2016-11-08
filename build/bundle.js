@@ -42937,7 +42937,7 @@
 	                var __jade_nodes = [];
 	                const isElse = idx === buckets.length - 1;;
 	                __jade_nodes.push(h("div", {
-	                  "className": [].concat('bucket-row').filter(Boolean).join(' '),
+	                  "className": [].concat('row').concat('bucket-row').filter(Boolean).join(' '),
 	                }, [(function() {
 	                  var __jade_nodes = [];
 	                  const [expr, val] = buckets[idx];;
@@ -42988,7 +42988,7 @@
 	          ])) : (h("div", {
 	            "className": [].concat('segment-section').filter(Boolean).join(' '),
 	          }, [h("div", {
-	            "className": [].concat('segment-row').filter(Boolean).join(' '),
+	            "className": [].concat('row').concat('segment-row').filter(Boolean).join(' '),
 	          }, [h("label", {
 	            "htmlFor": "segmentInput",
 	          }, ["on"]), h("input", {

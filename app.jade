@@ -36,7 +36,7 @@
       .bucket-section
         for bucket, idx in buckets
           - const isElse = idx === buckets.length - 1;
-          .bucket-row
+          .row.bucket-row
             - const [expr, val] = buckets[idx];
             - const label = idx === 0 ? 'If' : idx === buckets.length - 1 ? 'else' : 'else if';
             span.label.if-label #{label}
@@ -52,7 +52,7 @@
         mp-button.mp-button-secondary(onclick=$helpers.addBucket, attributes={icon: 'plus'}) bucket
     else
       .segment-section
-        .segment-row
+        .row.segment-row
           label(for="segmentInput") on
           input#segmentInput(type="text" placeholder="Type a segment expression..." value=on, onkeyup=$helpers.segmentChanged)
 
