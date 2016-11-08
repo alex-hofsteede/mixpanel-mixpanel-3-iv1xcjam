@@ -59,8 +59,8 @@ document.registerElement('quixpanel-app', class extends Component {
           this.update({to_date: document.querySelector('#toDateInput').value});
           this.executeQuery();
         },
-        intervalChanged: e => {
-          this.update({interval: document.querySelector('#intervalInput').value});
+        unitChanged: e => {
+          this.update({unit: document.querySelector('#unitInput').value});
           this.executeQuery();
         },
         eventChanged: e => {
