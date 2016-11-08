@@ -417,6 +417,9 @@
 	} else if (localStorage.getItem('quixpanelState')) {
 	  state = JSON.parse(localStorage.getItem('quixpanelState') || '{}');
 	}
+	if (!state.funnels || !state.funnels.steps) {
+	  state = {};
+	}
 	app.state = Object.assign(app.state, state);
 
 	function queryParam(name) {
