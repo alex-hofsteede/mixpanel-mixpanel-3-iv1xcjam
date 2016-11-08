@@ -253,8 +253,8 @@
 	            _this4.update({ to_date: document.querySelector('#toDateInput').value });
 	            _this4.executeQuery();
 	          },
-	          intervalChanged: function intervalChanged(e) {
-	            _this4.update({ interval: document.querySelector('#intervalInput').value });
+	          unitChanged: function unitChanged(e) {
+	            _this4.update({ unit: document.querySelector('#unitInput').value });
 	            _this4.executeQuery();
 	          },
 	          eventChanged: function eventChanged(e) {
