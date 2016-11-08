@@ -1,4 +1,4 @@
-.segmentation
+.global
   .api-secret
     label(for="apiSecretInput") Api secret
     input#apiSecretInput(type="text" placeholder="Paste in your project API secret..." value=apiSecret, onkeyup=$helpers.apiSecretChanged)
@@ -12,15 +12,13 @@
   .row.unit
     label(for="unitInput") Unit
     input#unitInput(type="text" name="unitInput" placeholder="day,week,month" value=unit onkeyup=$helpers.unitChanged)
-  .row.event
-    label(for="eventInput") Event name
-    input#eventInput(type="text" name="eventInput" placeholder="Type an event name..." value=event, onkeyup=$helpers.eventChanged)
   .row.filter
     label(for="filterInput") Filter expression
     input#filterInput(type="text" placeholder="Type an filter expression..." value=where, onkeyup=$helpers.filterChanged)
+
   .row.segment
     .segment-title
-      span.mp-font-medium.mp-font-weight-bold Segement
+      span.mp-font-size-medium.mp-font-weight-bold Segement
       = ' ('
       if bucketMode
         a(onclick=$helpers.segmentMode) segment mode
@@ -56,8 +54,26 @@
           label(for="segmentInput") on
           input#segmentInput(type="text" placeholder="Type a segment expression..." value=on, onkeyup=$helpers.segmentChanged)
 
+  .row.queryType
+    mp-toggle.mp-toggle-blue.inline-toggle(attributes={selected: `#{queryType}`} onchange=$helpers.queryTypeChanged)
+      mp-toggle-option(attributes={value: 'segmentation'}) Segmentation
+      mp-toggle-option(attributes={value: 'funnels'}) Funnels
+
+  if queryType == 'segmentation'
+    .segmentation-controls
+      .row.event
+        label(for="eventInput") Event name
+        input#eventInput(type="text" name="eventInput" placeholder="Type an event name..." value=segmentation.event, onkeyup=$helpers.segmentationEventChanged)
+
+  else if queryType == 'funnels'
+    .funnels-controls
+      .row.funnel-id
+        label(for="funnelIdInput") Funnel id
+        input#funnelIdInput(type="text" name="funnelIdInput" placeholder="Type an funnelId name..." value=funnels.funnelId, onkeyup=$helpers.funnelIdChanged)
+
   .row.action-row
     mp-button.mp-button-primary(onclick=$helpers.runQuery attribute={icon: 'refresh'}) Run query
+
   #chart
 
   if error

@@ -34,9 +34,15 @@ document.registerElement('quixpanel-app', class extends Component {
     return {
       defaultState: {
         apiSecret: '',
+        queryType: 'segmentation',
         bucketMode: false,
         buckets: [['', ''], ['', '']],
-        event: '',
+        segmentation: {
+          event: '',
+        },
+        funnels: {
+          funnelId: '',
+        },
         where: '',
         on: '',
         from_date: '2012-01-01',
@@ -51,6 +57,9 @@ document.registerElement('quixpanel-app', class extends Component {
           this.update({apiSecret: document.querySelector('#apiSecretInput').value});
           this.executeQuery();
         },
+        queryTypeChanged: e => {
+          this.update({queryType: e.target.value});
+        },
         fromDateChanged: e => {
           this.update({from_date: document.querySelector('#fromDateInput').value});
           this.executeQuery();
@@ -63,8 +72,14 @@ document.registerElement('quixpanel-app', class extends Component {
           this.update({unit: document.querySelector('#unitInput').value});
           this.executeQuery();
         },
-        eventChanged: e => {
-          this.update({event: document.querySelector('#eventInput').value});
+        segmentationEventChanged: e => {
+          this.state.segmentation.event = document.querySelector('#eventInput').value;
+          this.update();
+          this.executeQuery();
+        },
+        funnelIdChanged: e => {
+          this.state.funnels.funnelId = document.querySelector('#funnelIdInput').value;
+          this.update();
           this.executeQuery();
         },
         filterChanged: e => {
@@ -92,7 +107,6 @@ document.registerElement('quixpanel-app', class extends Component {
           } else {
             on = `if (${expr}, "${val}", "${elseVal}")`;
           }
-
 
           while (bucketRows.length) {
             [expr, val] = parseRow(bucketRows.pop());
@@ -147,42 +161,81 @@ document.registerElement('quixpanel-app', class extends Component {
       return;
     }
 
-    API.get('segmentation', {
-      event: this.state.event,
-      type: this.state.type,
-      limit: '150',
-      on: this.state.on,
-      where: this.state.where,
-      from_date: this.state.from_date,
-      to_date: this.state.to_date,
-      unit: this.state.unit,
-    }, this.state.apiSecret)
-    .then(response => {
-      if (response.error) {
-        this.update({error: response.error});
-        return;
-      }
-      const COLORS = ['#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a'];
-      var vals = response.data.values;
-      var data = [];
-      var i = 0;
-      for (var segment in vals) {
-        i++;
-        var values = Object.keys(vals[segment]).map(key => {
-          return {
-            x: new Date(key),
-            y: vals[segment][key],
+    switch(this.state.queryType) {
+      case 'segmentation':
+        API.get('segmentation', {
+          event: this.state.segmentation.event,
+          type: this.state.type,
+          on: this.state.on,
+          where: this.state.where,
+          from_date: this.state.from_date,
+          to_date: this.state.to_date,
+          unit: this.state.unit,
+        }, this.state.apiSecret)
+        .then(response => {
+          if (response.error) {
+            this.update({error: response.error});
+            return;
           }
+          var vals = response.data.values;
+          this.renderChart(this.formatData(vals));
         });
-        values.sort((a, b) => a.x - b.x);
-        data.push({
-          values: values,
-          key: segment,
-          color: COLORS[i % COLORS.length],
-        })
-      }
-      this.renderChart(data);
-    })
+        break;
+     case 'funnels':
+      API.get('funnels', {
+        funnel_id: this.state.funnels.funnelId,
+        on: this.state.on,
+        where: this.state.where,
+        from_date: this.state.from_date,
+        to_date: this.state.to_date,
+        unit: this.state.unit,
+      }, this.state.apiSecret)
+      .then(response => {
+        if (response.error) {
+          this.update({error: response.error});
+          return;
+        }
+        var vals = {};
+        for (const date in response.data) {
+          let dateVals = response.data[date];
+          if (dateVals.analysis && dateVals.steps) { // not segmented
+            dateVals = {'Conversion rate': dateVals.steps};
+          }
+          for (const segment in dateVals) {
+            if (segment !== '$overall') {
+              const numSteps = dateVals[segment].length;
+              vals[segment] = vals[segment] || {};
+              vals[segment][date] = dateVals[segment][numSteps - 1].overall_conv_ratio;
+            }
+          }
+        }
+        this.renderChart(this.formatData(vals));
+      });
+
+        break;
+    }
+  }
+
+  formatData(vals) {
+    const COLORS = ['#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a'];
+    var data = [];
+    var i = 0;
+    for (var segment in vals) {
+      i++;
+      var values = Object.keys(vals[segment]).map(date => {
+        return {
+          x: new Date(date),
+          y: vals[segment][date],
+        }
+      });
+      values.sort((a, b) => a.x - b.x);
+      data.push({
+        values: values,
+        key: segment,
+        color: COLORS[i % COLORS.length],
+      })
+    }
+    return data;
   }
 
   renderChart(data) {
@@ -195,7 +248,7 @@ document.registerElement('quixpanel-app', class extends Component {
             });
         chart.xAxis
             .axisLabel("Date")
-            .tickFormat(function(d) { return d3.time.format('%b %d')(new Date(d)); });
+            .tickFormat(function(d) { return d3.time.format('%m/%Y')(new Date(d)); });
         chart.yAxis
             .axisLabel('Event count')
             .tickFormat(function(d) {
