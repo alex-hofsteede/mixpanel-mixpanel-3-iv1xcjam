@@ -41,7 +41,7 @@ document.registerElement('quixpanel-app', class extends Component {
           event: '',
         },
         funnels: {
-          funnelId: '',
+          steps: [{event: '', selector: undefined}, {event: '', selector: undefined}],
         },
         where: '',
         on: '',
@@ -77,8 +77,15 @@ document.registerElement('quixpanel-app', class extends Component {
           this.update();
           this.executeQuery();
         },
-        funnelIdChanged: e => {
-          this.state.funnels.funnelId = document.querySelector('#funnelIdInput').value;
+        funnelsEventChanged: e => {
+          const idx = e.target.getAttribute('idx');
+          this.state.funnels.steps[idx].event = e.target.value;
+          this.update();
+          this.executeQuery();
+        },
+        funnelsFilterChanged: e => {
+          const idx = e.target.getAttribute('idx');
+          this.state.funnels.steps[idx].selector = e.target.value;
           this.update();
           this.executeQuery();
         },
@@ -182,8 +189,14 @@ document.registerElement('quixpanel-app', class extends Component {
         });
         break;
      case 'funnels':
-      API.get('funnels', {
-        funnel_id: this.state.funnels.funnelId,
+      this.state.funnels.steps.forEach(step => {
+        if (!step.selector) {
+          delete step.selector;
+        }
+      });
+      debugger;
+      API.get('arb_funnels', {
+        events: JSON.stringify(this.state.funnels.steps),
         on: this.state.on,
         where: this.state.where,
         from_date: this.state.from_date,

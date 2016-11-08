@@ -165,8 +165,14 @@
 	          });
 	          break;
 	        case 'funnels':
-	          API.get('funnels', {
-	            funnel_id: this.state.funnels.funnelId,
+	          this.state.funnels.steps.forEach(function (step) {
+	            if (!step.selector) {
+	              delete step.selector;
+	            }
+	          });
+	          debugger;
+	          API.get('arb_funnels', {
+	            events: JSON.stringify(this.state.funnels.steps),
 	            on: this.state.on,
 	            where: this.state.where,
 	            from_date: this.state.from_date,
@@ -273,7 +279,7 @@
 	            event: ''
 	          },
 	          funnels: {
-	            funnelId: ''
+	            steps: [{ event: '', selector: undefined }, { event: '', selector: undefined }]
 	          },
 	          where: '',
 	          on: '',
@@ -311,8 +317,15 @@
 	            _this4.update();
 	            _this4.executeQuery();
 	          },
-	          funnelIdChanged: function funnelIdChanged(e) {
-	            _this4.state.funnels.funnelId = document.querySelector('#funnelIdInput').value;
+	          funnelsEventChanged: function funnelsEventChanged(e) {
+	            var idx = e.target.getAttribute('idx');
+	            _this4.state.funnels.steps[idx].event = e.target.value;
+	            _this4.update();
+	            _this4.executeQuery();
+	          },
+	          funnelsFilterChanged: function funnelsFilterChanged(e) {
+	            var idx = e.target.getAttribute('idx');
+	            _this4.state.funnels.steps[idx].selector = e.target.value;
 	            _this4.update();
 	            _this4.executeQuery();
 	          },
@@ -43170,18 +43183,36 @@
 	          "onkeyup": $helpers.segmentationEventChanged,
 	        }), ])])) : (queryType == 'funnels') ? (h("div", {
 	          "className": [].concat('funnels-controls').filter(Boolean).join(' '),
-	        }, [h("div", {
-	          "className": [].concat('row').concat('funnel-id').filter(Boolean).join(' '),
-	        }, [h("label", {
-	          "htmlFor": "funnelIdInput",
-	        }, ["Funnel id"]), h("input", {
-	          "id": 'funnelIdInput',
-	          "type": "text",
-	          "name": "funnelIdInput",
-	          "placeholder": "Type an funnelId name...",
-	          "value": funnels.funnelId,
-	          "onkeyup": $helpers.funnelIdChanged,
-	        }), ])])) : undefined);
+	        }, [(funnels.steps).map(function(step, idx) {
+	          return [h("div", {
+	            "className": [].concat('row').concat('event').filter(Boolean).join(' '),
+	          }, [h("label", {
+	            "htmlFor": "funnelStep" + (idx) + "EventInput",
+	          }, ["Event name"]), h("input", {
+	            "id": "funnelStep" + (idx) + "EventInput",
+	            "type": "text",
+	            "name": "funnelStep" + (idx) + "EventInput",
+	            "placeholder": "Type an event name...",
+	            "value": step.event,
+	            "onkeyup": $helpers.funnelsEventChanged,
+	            "attributes": {
+	              idx
+	            },
+	          }), ]), h("div", {
+	            "className": [].concat('row').concat('filter').filter(Boolean).join(' '),
+	          }, [h("label", {
+	            "htmlFor": "funnelStep" + (idx) + "FilterInput",
+	          }, ["Filter expression"]), h("input", {
+	            "id": "funnelStep" + (idx) + "FilterInput",
+	            "type": "text",
+	            "placeholder": "Type an filter expression...",
+	            "value": step.selector,
+	            "onkeyup": $helpers.funnelsFilterChanged,
+	            "attributes": {
+	              idx
+	            },
+	          }), ]), ]
+	        })])) : undefined);
 	        __jade_nodes.push(h("div", {
 	          "className": [].concat('row').concat('action-row').filter(Boolean).join(' '),
 	        }, [h("mp-button", {

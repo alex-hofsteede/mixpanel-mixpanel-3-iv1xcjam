@@ -67,9 +67,13 @@
 
   else if queryType == 'funnels'
     .funnels-controls
-      .row.funnel-id
-        label(for="funnelIdInput") Funnel id
-        input#funnelIdInput(type="text" name="funnelIdInput" placeholder="Type an funnelId name..." value=funnels.funnelId, onkeyup=$helpers.funnelIdChanged)
+      for step, idx in funnels.steps
+        .row.event
+          label(for="funnelStep#{idx}EventInput") Event name
+          input(id="funnelStep#{idx}EventInput" type="text" name="funnelStep#{idx}EventInput" placeholder="Type an event name..." value=step.event onkeyup=$helpers.funnelsEventChanged attributes={idx})
+        .row.filter
+          label(for="funnelStep#{idx}FilterInput") Filter expression
+          input(id="funnelStep#{idx}FilterInput" type="text" placeholder="Type an filter expression..." value=step.selector onkeyup=$helpers.funnelsFilterChanged attributes={idx})
 
   .row.action-row
     mp-button.mp-button-primary(onclick=$helpers.runQuery attribute={icon: 'refresh'}) Run query
