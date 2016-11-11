@@ -71,11 +71,13 @@
 
 	var _panel = __webpack_require__(176);
 
-	var _app = __webpack_require__(179);
+	var _index = __webpack_require__(179);
 
-	var _app2 = _interopRequireDefault(_app);
+	var _index2 = _interopRequireDefault(_index);
 
 	__webpack_require__(180);
+
+	__webpack_require__(186);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -400,7 +402,7 @@
 	          }
 	        },
 
-	        template: _app2.default
+	        template: _index2.default
 	      };
 	    }
 	  }]);
@@ -43228,6 +43230,11 @@
 	        __jade_nodes.push(h("div", {
 	          "id": 'chart',
 	        }));
+	        __jade_nodes.push(h("bookmark-drawer", {
+	          "attributes": {
+	            open: true
+	          },
+	        }));
 	        __jade_nodes.push((error) ? (h("mp-modal", {
 	          "attributes": {
 	            alert: true,
@@ -43256,20 +43263,401 @@
 /* 180 */
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _moment = __webpack_require__(68);
+
+	var _moment2 = _interopRequireDefault(_moment);
+
+	var _panel = __webpack_require__(176);
+
+	__webpack_require__(181);
+
+	var _index = __webpack_require__(184);
+
+	var _index2 = _interopRequireDefault(_index);
+
+	var _index3 = __webpack_require__(185);
+
+	var _index4 = _interopRequireDefault(_index3);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /* global mp */
+
+	document.registerElement('bookmark-drawer', function (_Component) {
+	  _inherits(_class, _Component);
+
+	  function _class() {
+	    _classCallCheck(this, _class);
+
+	    return _possibleConstructorReturn(this, (_class.__proto__ || Object.getPrototypeOf(_class)).apply(this, arguments));
+	  }
+
+	  _createClass(_class, [{
+	    key: 'close',
+	    value: function close() {
+	      this.drawer.close();
+	    }
+	  }, {
+	    key: 'config',
+	    get: function get() {
+	      var _this2 = this;
+
+	      return {
+	        css: _index2.default,
+	        template: _index4.default,
+	        useShadowDom: true,
+
+	        defaultState: {
+	          bookmarks: [],
+	          nameFilter: '',
+	          userFilter: 'all',
+
+	          sortField: 'name',
+	          sortOrder: 'asc'
+	        },
+
+	        helpers: {
+	          bookmarksForDisplay: function bookmarksForDisplay() {
+	            var bookmarks = _this2.state.bookmarks;
+	            if (_this2.state.nameFilter) {
+	              (function () {
+	                var searchStr = _this2.state.nameFilter.toLowerCase();
+	                bookmarks = bookmarks.filter(function (bm) {
+	                  return bm.name.toLowerCase().includes(searchStr);
+	                });
+	              })();
+	            }
+	            return bookmarks.sort(function (a, b) {
+	              a = a[_this2.state.sortField];
+	              b = b[_this2.state.sortField];
+	              if (_this2.state.sortField === 'modified') {
+	                a = _moment2.default.utc(a);
+	                b = _moment2.default.utc(b);
+	              } else if (typeof a === 'string') {
+	                a = a.toLowerCase();
+	                b = b.toLowerCase();
+	              }
+	              var cmp = a > b ? 1 : a < b ? -1 : 0;
+	              return _this2.state.sortOrder === 'desc' ? -cmp : cmp;
+	            });
+	          },
+	          changeNameFilter: function changeNameFilter(ev) {
+	            return _this2.update({ nameFilter: ev.target.value });
+	          },
+	          clickBookmark: function clickBookmark(bookmark) {
+	            _this2.dispatchEvent(new CustomEvent('change', { detail: {
+	                action: 'choose',
+	                bookmarkId: bookmark.id
+	              } }));
+	            _this2.close();
+	          },
+	          clickDelete: function clickDelete(bookmark) {
+	            _this2.dispatchEvent(new CustomEvent('change', { detail: {
+	                action: 'delete',
+	                bookmarkId: bookmark.id
+	              } }));
+	          },
+	          clickFilter: function clickFilter(userFilter) {
+	            return _this2.update({ userFilter: userFilter });
+	          },
+	          clickHeader: function clickHeader(field) {
+	            var sortField = field;
+	            var sortOrder = _this2.state.sortOrder;
+	            if (field === _this2.state.sortField) {
+	              sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+	            }
+	            _this2.update({ sortField: sortField, sortOrder: sortOrder });
+	          },
+	          close: function close() {
+	            return _this2.close();
+	          },
+	          drawerChange: function drawerChange(ev) {
+	            return ev.detail && _this2.setAttribute('open', ev.detail.open);
+	          },
+	          isOpen: function isOpen() {
+	            return _this2.isAttributeEnabled('open');
+	          },
+	          modifiedStr: function modifiedStr(bookmark) {
+	            return _moment2.default.utc(bookmark.modified).local().format('MMM D, YYYY');
+	          }
+	        }
+	      };
+	    }
+	  }, {
+	    key: 'drawer',
+	    get: function get() {
+	      return this.el.querySelector('mp-drawer');
+	    }
+	  }]);
+
+	  return _class;
+	}(_panel.Component));
+
+/***/ },
+/* 181 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+	var _panel = __webpack_require__(176);
+
+	var _mpDrawer = __webpack_require__(182);
+
+	var _mpDrawer2 = _interopRequireDefault(_mpDrawer);
+
+	var _mpDrawer3 = __webpack_require__(183);
+
+	var _mpDrawer4 = _interopRequireDefault(_mpDrawer3);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	document.registerElement('mp-drawer', function (_Component) {
+	  _inherits(_class, _Component);
+
+	  function _class() {
+	    _classCallCheck(this, _class);
+
+	    return _possibleConstructorReturn(this, (_class.__proto__ || Object.getPrototypeOf(_class)).apply(this, arguments));
+	  }
+
+	  _createClass(_class, [{
+	    key: 'createdCallback',
+	    value: function createdCallback() {
+	      _get(_class.prototype.__proto__ || Object.getPrototypeOf(_class.prototype), 'createdCallback', this).apply(this, arguments);
+	      document.body.style.position = 'relative';
+	    }
+	  }, {
+	    key: 'attributeChangedCallback',
+	    value: function attributeChangedCallback(attr, oldVal, newVal) {
+	      _get(_class.prototype.__proto__ || Object.getPrototypeOf(_class.prototype), 'attributeChangedCallback', this).apply(this, arguments);
+	      if (attr === 'open') {
+	        this.update({ closing: !newVal });
+	      }
+	    }
+	  }, {
+	    key: 'close',
+	    value: function close() {
+	      var _this2 = this;
+
+	      this.update({ closing: true });
+	      window.setTimeout(function () {
+	        _this2.removeAttribute('open');
+	        _this2.dispatchEvent(new CustomEvent('change', { detail: { open: false } }));
+	      }, 150);
+	    }
+	  }, {
+	    key: 'config',
+	    get: function get() {
+	      var _this3 = this;
+
+	      return {
+	        css: _mpDrawer2.default,
+	        template: _mpDrawer4.default,
+	        useShadowDom: true,
+
+	        defaultState: {
+	          closing: false
+	        },
+
+	        helpers: {
+	          close: function close() {
+	            return _this3.close();
+	          },
+	          drawerWidth: function drawerWidth() {
+	            return _this3.getAttribute('drawer-width') + 'px';
+	          },
+	          isOpen: function isOpen() {
+	            return _this3.isAttributeEnabled('open');
+	          }
+	        }
+	      };
+	    }
+	  }]);
+
+	  return _class;
+	}(_panel.Component));
+
+/***/ },
+/* 182 */
+/***/ function(module, exports) {
+
+	module.exports = ".mp-drawer {\n  height: 0;\n  overflow: hidden;\n  position: absolute;\n  right: 0;\n  top: 0;\n  width: 0;\n  z-index: 100;\n}\n.mp-drawer .mp-drawer-content {\n  background-color: #fff;\n  min-height: 100%;\n  overflow: hidden;\n  padding: 0;\n  position: absolute;\n  right: 0;\n  top: 0;\n}\n.mp-drawer .mp-drawer-bg {\n  background-color: #fff;\n  height: 100%;\n  position: fixed;\n  right: 0;\n}\n.mp-drawer .mp-drawer-bg,\n.mp-drawer .mp-drawer-content {\n  -webkit-transform: translateX(100%);\n          transform: translateX(100%);\n  -webkit-transition: -webkit-transform 0.15s;\n  transition: -webkit-transform 0.15s;\n  transition: transform 0.15s;\n  transition: transform 0.15s, -webkit-transform 0.15s;\n}\n.mp-drawer.open {\n  height: 100%;\n  overflow: initial;\n  width: 100%;\n}\n.mp-drawer.open .mp-drawer-overlay {\n  background-color: #3c4c63;\n  height: 100%;\n  opacity: 0.8;\n  position: fixed;\n  width: 100%;\n}\n.mp-drawer.open .mp-drawer-bg,\n.mp-drawer.open .mp-drawer-content {\n  -webkit-transform: translateX(0%);\n          transform: translateX(0%);\n}\n.mp-drawer.open .mp-drawer-bg.closing,\n.mp-drawer.open .mp-drawer-content.closing {\n  -webkit-transform: translateX(100%);\n          transform: translateX(100%);\n}\n"
+
+/***/ },
+/* 183 */
+/***/ function(module, exports, __webpack_require__) {
+
+	function _jade_template_fn(locals) {
+	  locals = locals || {};;;
+	  var result_of_with = (function($helpers, Boolean, Object, closing) {
+	    var h = __webpack_require__(51);
+
+	    var __objToAttrs = function(o) {
+	      return Object.keys(o).map(function(k) {
+	        return o[k] ? k : false
+	      });
+	    };
+	    return {
+	      value: (h("div", {
+	        "className": [].concat('mp-drawer').concat(__objToAttrs({
+	          open: $helpers.isOpen()
+	        })).filter(Boolean).join(' '),
+	      }, [h("div", {
+	        "onclick": $helpers.close,
+	        "className": [].concat('mp-drawer-overlay').filter(Boolean).join(' '),
+	      }), h("div", {
+	        "style": {
+	          width: $helpers.drawerWidth()
+	        },
+	        "className": [].concat('mp-drawer-bg').concat(__objToAttrs({
+	          closing
+	        })).filter(Boolean).join(' '),
+	      }), h("div", {
+	        "className": [].concat('mp-drawer-content').concat(__objToAttrs({
+	          closing
+	        })).filter(Boolean).join(' '),
+	      }, [h("content")]), ]))
+	    };
+	  }.call(this, "$helpers" in locals ? locals.$helpers : typeof $helpers !== "undefined" ? $helpers : undefined, "Boolean" in locals ? locals.Boolean : typeof Boolean !== "undefined" ? Boolean : undefined, "Object" in locals ? locals.Object : typeof Object !== "undefined" ? Object : undefined, "closing" in locals ? locals.closing : typeof closing !== "undefined" ? closing : undefined));
+	  if (result_of_with) return result_of_with.value;
+	}
+	module.exports = _jade_template_fn;
+
+/***/ },
+/* 184 */
+/***/ function(module, exports) {
+
+	module.exports = "svg-icon {\n  display: inline-block;\n  height: 22px;\n  min-height: 22px;\n  min-width: 22px;\n  position: relative;\n  width: 22px;\n}\nsvg-icon svg {\n  left: 0;\n  position: absolute;\n  top: 0;\n}\n* {\n  -webkit-font-smoothing: antialiased;\n}\n*:focus {\n  outline: 0;\n}\n*::-ms-clear {\n  height: 0;\n  width: 0;\n}\nbody {\n  color: #6e859d;\n  font-family: 'HelveticaNeue', 'Helvetica Neue', 'HelveticaNeueRoman', 'HelveticaNeue-Roman', 'Helvetica Neue Roman', 'Helvetica', 'Tahoma', 'Geneva', 'Arial', sans-serif;\n  font-weight: 400;\n  font-size: 12px;\n  font-stretch: normal;\n}\na,\n.mp-link {\n  cursor: pointer;\n  text-decoration: none;\n}\na,\n.mp-link,\na:visited,\n.mp-link:visited {\n  color: #3b99f0;\n}\na:hover,\n.mp-link:hover {\n  color: #4ba8ff;\n}\n.mp-font-size-xl {\n  font-size: 18px;\n}\n.mp-font-size-large {\n  font-size: 16px;\n}\n.mp-font-size-medium {\n  font-size: 14px;\n}\n.mp-font-size-default {\n  font-size: 12px;\n}\n.mp-font-size-xs {\n  font-size: 11px;\n  text-transform: uppercase;\n}\n.mp-font-weight-bold {\n  font-weight: 600;\n}\n.mp-font-weight-medium {\n  font-weight: 500;\n}\n.mp-font-weight-regular {\n  font-weight: 400;\n}\n.mp-font-paragraph {\n  color: #6e859d;\n  font-size: 14px;\n  font-family: 'HelveticaNeue', 'Helvetica Neue', 'HelveticaNeueRoman', 'HelveticaNeue-Roman', 'Helvetica Neue Roman', 'Helvetica', 'Tahoma', 'Geneva', 'Arial', sans-serif;\n  font-stretch: normal;\n  font-weight: 500;\n  line-height: 18px;\n}\ninput[type=text],\ntextarea {\n  border: 1px solid #d8e0e6;\n  border-radius: 4px;\n  color: #6e859d;\n  display: inline-block;\n  font-size: 13px;\n  font-weight: 500;\n  -webkit-transition: border-color 150ms ease-out;\n  transition: border-color 150ms ease-out;\n}\ninput[type=text] ::-webkit-input-placeholder,\ntextarea ::-webkit-input-placeholder {\n  color: #9cacbb !important;\n  font-weight: 400 !important;\n}\ninput[type=text] ::-moz-placeholder,\ntextarea ::-moz-placeholder {\n  color: #9cacbb !important;\n  font-weight: 400 !important;\n}\ninput[type=text] :-ms-input-placeholder,\ntextarea :-ms-input-placeholder {\n  color: #9cacbb !important;\n  font-weight: 400 !important;\n}\ninput[type=text] ::placeholder,\ntextarea ::placeholder {\n  color: #9cacbb !important;\n  font-weight: 400 !important;\n}\ninput[type=text]:focus,\ntextarea:focus {\n  border-color: #3391e9;\n  -webkit-transition: border-color 250ms ease-in;\n  transition: border-color 250ms ease-in;\n}\n.search {\n  border-bottom: 1px solid #eff3f5;\n  font-size: 16px;\n  margin: 24px 38px 0 38px;\n  padding-bottom: 20px;\n}\n.search input {\n  border: none;\n  color: #92949d;\n  font-size: 18px;\n  line-height: 38px;\n  outline: none;\n  padding-left: 32px;\n  width: 548px;\n}\n.search .drawer-close-wrapper {\n  position: absolute;\n  right: 0;\n  top: 0;\n}\n.search .drawer-close-wrapper .drawer-close {\n  cursor: pointer;\n  display: inline-block;\n  height: 27px;\n  width: 32px;\n}\n.search .drawer-close-wrapper .drawer-close:hover::before {\n  background-color: #4ba8ff;\n}\n.filter {\n  background-color: #eff3f5;\n  border-radius: 50px;\n  margin: 34px 38px;\n  padding: 2px;\n}\n.filter .toggle-option {\n  background-color: #eff3f5;\n  border-radius: 50px;\n  color: #6e859d;\n  display: inline-block;\n  font-size: 11px;\n  font-weight: bold;\n  padding: 9px 0;\n  text-align: center;\n  text-transform: uppercase;\n  width: 50%;\n}\n.filter .toggle-option.toggle-selected {\n  background-color: #fff;\n}\n.filter .toggle-option:not(.toggle-selected) {\n  cursor: pointer;\n}\n.filter .toggle-option:not(.toggle-selected):hover {\n  color: #4ba8ff;\n}\n.bookmarks {\n  background-color: #f9fafc;\n  height: 100%;\n  width: 690px;\n}\n.bookmarks .bookmark-row {\n  -webkit-box-align: center;\n      -ms-flex-align: center;\n          align-items: center;\n  border-bottom: 1px solid #e5eaef;\n  cursor: pointer;\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  font-size: 14px;\n  height: 50px;\n  padding-left: 72px;\n  position: relative;\n}\n.bookmarks .bookmark-row.header-row {\n  background-color: #fff;\n  color: #6e859d;\n  font-size: 11px;\n  font-weight: bold;\n  text-transform: uppercase;\n}\n.bookmarks .bookmark-row.header-row .bookmark-col {\n  cursor: pointer;\n}\n.bookmarks .bookmark-row.header-row .bookmark-col.field-selected {\n  color: #2c3642;\n}\n.bookmarks .bookmark-row.header-row .bookmark-col:hover .sort-arrows {\n  opacity: 1;\n}\n.bookmarks .bookmark-row.header-row .bookmark-col:not(.field-selected):hover .sort-arrows::before {\n  background-color: #6e859d;\n}\n.bookmarks .bookmark-row.header-row .bookmark-col .sort-arrows {\n  display: inline-block;\n  height: 10px;\n  margin-left: 10px;\n  opacity: 0;\n  width: 8px;\n}\n.bookmarks .bookmark-row.header-row .bookmark-col .sort-arrows.sort-selected {\n  opacity: 1;\n}\n.bookmarks .bookmark-row.body-row {\n  color: #6e859d;\n}\n.bookmarks .bookmark-row.body-row:hover {\n  background-color: #fff;\n}\n.bookmarks .bookmark-row.body-row:hover .name {\n  color: #2c3642;\n}\n.bookmarks .bookmark-row.body-row:hover .delete-icon {\n  display: inline-block;\n}\n.bookmarks .bookmark-row.body-row .name {\n  cursor: pointer;\n}\n.bookmarks .bookmark-row.body-row .modified {\n  font-size: 13px;\n}\n.bookmarks .bookmark-row.body-row .user .user-icon {\n  margin-left: 12px;\n  border-radius: 50%;\n  color: #fff;\n  cursor: default;\n  display: inline-block;\n  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;\n  font-size: 11px;\n  font-weight: 600;\n  height: 26px;\n  line-height: 26px;\n  text-align: center;\n  width: 26px;\n  background-color: #1e7171;\n}\n.bookmarks .bookmark-row.body-row .user .user-icon.color-A {\n  background-color: #33bcbd;\n}\n.bookmarks .bookmark-row.body-row .user .user-icon.color-B {\n  background-color: #2da9aa;\n}\n.bookmarks .bookmark-row.body-row .user .user-icon.color-C {\n  background-color: #289697;\n}\n.bookmarks .bookmark-row.body-row .user .user-icon.color-D {\n  background-color: #238384;\n}\n.bookmarks .bookmark-row.body-row .user .user-icon.color-E {\n  background-color: #64ade8;\n}\n.bookmarks .bookmark-row.body-row .user .user-icon.color-F {\n  background-color: #5a9bd1;\n}\n.bookmarks .bookmark-row.body-row .user .user-icon.color-G {\n  background-color: #508bba;\n}\n.bookmarks .bookmark-row.body-row .user .user-icon.color-H {\n  background-color: #4679a2;\n}\n.bookmarks .bookmark-row.body-row .user .user-icon.color-I {\n  background-color: #3c688b;\n}\n.bookmarks .bookmark-row.body-row .user .user-icon.color-J {\n  background-color: #a28ccb;\n}\n.bookmarks .bookmark-row.body-row .user .user-icon.color-K {\n  background-color: #917db6;\n}\n.bookmarks .bookmark-row.body-row .user .user-icon.color-L {\n  background-color: #826fa2;\n}\n.bookmarks .bookmark-row.body-row .user .user-icon.color-M {\n  background-color: #71618d;\n}\n.bookmarks .bookmark-row.body-row .user .user-icon.color-N {\n  background-color: #61547a;\n}\n.bookmarks .bookmark-row.body-row .user .user-icon.color-O {\n  background-color: #d97b7f;\n}\n.bookmarks .bookmark-row.body-row .user .user-icon.color-P {\n  background-color: #c36e72;\n}\n.bookmarks .bookmark-row.body-row .user .user-icon.color-Q {\n  background-color: #ad6366;\n}\n.bookmarks .bookmark-row.body-row .user .user-icon.color-R {\n  background-color: #985559;\n}\n.bookmarks .bookmark-row.body-row .user .user-icon.color-S {\n  background-color: #e8bc65;\n}\n.bookmarks .bookmark-row.body-row .user .user-icon.color-T {\n  background-color: #d0a95b;\n}\n.bookmarks .bookmark-row.body-row .user .user-icon.color-U {\n  background-color: #b99651;\n}\n.bookmarks .bookmark-row.body-row .user .user-icon.color-V {\n  background-color: #a28347;\n}\n.bookmarks .bookmark-row.body-row .user .user-icon.color-W {\n  background-color: #f6893b;\n}\n.bookmarks .bookmark-row.body-row .user .user-icon.color-X {\n  background-color: #dd7b35;\n}\n.bookmarks .bookmark-row.body-row .user .user-icon.color-Y {\n  background-color: #c46e30;\n}\n.bookmarks .bookmark-row .bookmark-col {\n  display: inline-block;\n}\n.bookmarks .bookmark-row .bookmark-col.name {\n  width: 350px;\n}\n.bookmarks .bookmark-row .bookmark-col.type {\n  width: 114px;\n}\n.bookmarks .bookmark-row .bookmark-col.modified {\n  width: 104px;\n}\n.bookmarks .bookmark-row .bookmark-col.delete {\n  height: 20px;\n  width: 50px;\n}\n.bookmarks .bookmark-row .delete-icon {\n  background-repeat: no-repeat;\n  cursor: pointer;\n  display: none;\n  height: 16px;\n  overflow: hidden;\n  position: absolute;\n  top: 16px;\n  width: 15px;\n}\n.bookmarks .bookmark-row .delete-icon:hover {\n  background-position: -15px 0;\n}\n"
+
+/***/ },
+/* 185 */
+/***/ function(module, exports, __webpack_require__) {
+
+	function _jade_template_fn(locals) {
+	  locals = locals || {};;;
+	  var result_of_with = (function($helpers, Boolean, Object, nameFilter, sortField, sortOrder) {
+	    var h = __webpack_require__(51);
+	    var jade_mixins = {};
+	    jade_mixins['header-col'] = function(text, field) {
+	      var block = (this && this.block),
+	        attributes = (this && this.attributes) || {};
+
+	      return (function() {
+	        var __jade_nodes = [];
+	        const fieldSelected = sortField === field;;
+	        __jade_nodes.push(h("div", {
+	          "onclick": () => $helpers.clickHeader(field),
+	          "className": [].concat('bookmark-col').concat(__objToAttrs({
+	            [field]: true,
+	            'field-selected': fieldSelected,
+	          })).filter(Boolean).join(' '),
+	        }, [
+	          [h("span", (text)), h("div", {
+	            "className": [].concat('sort-arrows').concat(__objToAttrs({
+	              [`sort-${sortOrder}`]: true,
+	              'sort-selected': fieldSelected,
+	            })).filter(Boolean).join(' '),
+	          }), ]
+	        ]));;
+	        return __jade_nodes
+	      }).call(this);
+	    };
+
+	    var __objToAttrs = function(o) {
+	      return Object.keys(o).map(function(k) {
+	        return o[k] ? k : false
+	      });
+	    };
+	    return {
+	      value: (h("mp-drawer", {
+	        "attributes": {
+	          'drawer-width': 690,
+	          'open': $helpers.isOpen(),
+	        },
+	        "onchange": $helpers.drawerChange,
+	      }, [
+	        [h("div", {
+	          "className": [].concat('search').filter(Boolean).join(' '),
+	        }, [h("input", {
+	          "type": "text",
+	          "placeholder": "Search reports",
+	          "value": nameFilter,
+	          "onblur": $helpers.changeNameFilter,
+	          "onchange": $helpers.changeNameFilter,
+	          "onfocusout": $helpers.changeNameFilter,
+	          "oninput": $helpers.changeNameFilter,
+	          "onkeypress": $helpers.changeNameFilter,
+	        }), h("div", {
+	          "className": [].concat('drawer-close-wrapper').filter(Boolean).join(' '),
+	        }, [h("div", {
+	          "onclick": $helpers.close,
+	          "className": [].concat('drawer-close').filter(Boolean).join(' '),
+	        })]), ]), h("div", {
+	          "className": [].concat('bookmarks').filter(Boolean).join(' '),
+	        }, [
+	          [h("div", {
+	            "className": [].concat('bookmark-row').concat('header-row').filter(Boolean).join(' '),
+	          }, [jade_mixins['header-col'].call(this, 'Name', 'name'), jade_mixins['header-col'].call(this, 'Type', 'type'), jade_mixins['header-col'].call(this, 'Last modified', 'modified'), ]), ($helpers.bookmarksForDisplay()).map(function(bookmark, $index) {
+	            return h("div", {
+	              "onclick": () => $helpers.clickBookmark(bookmark),
+	              "className": [].concat('bookmark-row').concat('body-row').filter(Boolean).join(' '),
+	            }, [h("div", {
+	              "className": [].concat('bookmark-col').concat('name').filter(Boolean).join(' '),
+	            }, (bookmark.name)), h("div", {
+	              "className": [].concat('bookmark-col').concat('type').filter(Boolean).join(' '),
+	            }, (bookmark.type)), h("div", {
+	              "className": [].concat('bookmark-col').concat('modified').filter(Boolean).join(' '),
+	            }, ($helpers.modifiedStr(bookmark))), h("div", {
+	              "className": [].concat('bookmark-col').concat('delete').filter(Boolean).join(' '),
+	            }, [h("div", {
+	              "onclick": () => $helpers.clickDelete(bookmark),
+	              "className": [].concat('delete-icon').filter(Boolean).join(' '),
+	            })]), ])
+	          }), ]
+	        ]), ]
+	      ]))
+	    };
+	  }.call(this, "$helpers" in locals ? locals.$helpers : typeof $helpers !== "undefined" ? $helpers : undefined, "Boolean" in locals ? locals.Boolean : typeof Boolean !== "undefined" ? Boolean : undefined, "Object" in locals ? locals.Object : typeof Object !== "undefined" ? Object : undefined, "nameFilter" in locals ? locals.nameFilter : typeof nameFilter !== "undefined" ? nameFilter : undefined, "sortField" in locals ? locals.sortField : typeof sortField !== "undefined" ? sortField : undefined, "sortOrder" in locals ? locals.sortOrder : typeof sortOrder !== "undefined" ? sortOrder : undefined));
+	  if (result_of_with) return result_of_with.value;
+	}
+	module.exports = _jade_template_fn;
+
+/***/ },
+/* 186 */
+/***/ function(module, exports, __webpack_require__) {
+
 	// style-loader: Adds some css to the DOM by adding a <style> tag
 
 	// load the styles
-	var content = __webpack_require__(181);
+	var content = __webpack_require__(187);
 	if(typeof content === 'string') content = [[module.id, content, '']];
 	// add the styles to the DOM
-	var update = __webpack_require__(183)(content, {});
+	var update = __webpack_require__(189)(content, {});
 	if(content.locals) module.exports = content.locals;
 	// Hot Module Replacement
 	if(false) {
 		// When the styles change, update the <style> tags
 		if(!content.locals) {
-			module.hot.accept("!!./node_modules/css-loader/index.js!./node_modules/autoprefixer-loader/index.js!./node_modules/stylus-loader/index.js!./app.styl", function() {
-				var newContent = require("!!./node_modules/css-loader/index.js!./node_modules/autoprefixer-loader/index.js!./node_modules/stylus-loader/index.js!./app.styl");
+			module.hot.accept("!!./node_modules/css-loader/index.js!./node_modules/autoprefixer-loader/index.js!./node_modules/stylus-loader/index.js!./index.styl", function() {
+				var newContent = require("!!./node_modules/css-loader/index.js!./node_modules/autoprefixer-loader/index.js!./node_modules/stylus-loader/index.js!./index.styl");
 				if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
 				update(newContent);
 			});
@@ -43279,10 +43667,10 @@
 	}
 
 /***/ },
-/* 181 */
+/* 187 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports = module.exports = __webpack_require__(182)();
+	exports = module.exports = __webpack_require__(188)();
 	// imports
 
 
@@ -43293,7 +43681,7 @@
 
 
 /***/ },
-/* 182 */
+/* 188 */
 /***/ function(module, exports) {
 
 	/*
@@ -43349,7 +43737,7 @@
 
 
 /***/ },
-/* 183 */
+/* 189 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*

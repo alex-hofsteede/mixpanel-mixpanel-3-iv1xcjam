@@ -1,0 +1,5 @@
+.mp-drawer(class={open: $helpers.isOpen()})
+  .mp-drawer-overlay(onclick=$helpers.close)
+  .mp-drawer-bg(class={closing} style={width: $helpers.drawerWidth()})
+  .mp-drawer-content(class={closing})
+    content

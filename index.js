@@ -3,9 +3,11 @@ import moment from 'moment';
 import _ from 'lodash';
 
 import { Component } from 'panel';
-import counterTemplate from './app.jade';
+import counterTemplate from './index.jade';
 
-import './app.styl';
+import './bookmark-drawer';
+
+import './index.styl';
 
 const objToQueryString = params => {
   return Object.keys(params).map(k => [k, encodeURIComponent(params[k])].join('=')).join('&');
@@ -49,6 +51,8 @@ document.registerElement('quixpanel-app', class extends Component {
         to_date: moment().format('YYYY-MM-DD'),
         unit: 'month',
         type: 'unique',
+        savedReports: [],
+        savedReportsOpen: false,
       },
 
       helpers: {
@@ -142,6 +146,49 @@ document.registerElement('quixpanel-app', class extends Component {
           if (e.detail.state === 'closed') {
             this.update({error: null})
           }
+        },
+        saveReport: e => {
+          const reportState = JSON.parse(JSON.stringify(this.state));
+          delete reportState.savedReports;
+          let name;
+          switch (this.state.queryType) {
+            case 'segmentation':
+              name = this.state.segmentation.event;
+              break;
+            case 'funnels':
+              name = this.state.funnels.steps[0].event + ' -> ' + this.state.funnels.steps[1].event;
+              break;
+          }
+          const report = {
+            id: (new Date()).getTime(),
+            name: name,
+            type: this.state.queryType,
+            modified: moment(),
+            state: reportState,
+          }
+          const saves = JSON.parse(localStorage.getItem('quixpanelSaves') || '[]');
+          saves.push(report);
+          this.update({savedReports: saves});
+          localStorage.setItem('quixpanelSaves', JSON.stringify(saves));
+        },
+        viewSavedReports: e => {
+          this.update({savedReportsOpen: true})
+        },
+        handleBookmarkChanged: e => {
+          switch(e.detail.action) {
+            case 'choose':
+              this.update(e.detail.bookmark.state);
+              this.executeQuery();
+              break;
+            case 'delete':
+              const saves = JSON.parse(localStorage.getItem('quixpanelSaves') || '[]').filter(savedReport => savedReport.id !== e.detail.bookmarkId);
+              this.update({savedReports: saves});
+              localStorage.setItem('quixpanelSaves', JSON.stringify(saves));
+              break;
+            case 'close':
+              this.update({savedReportsOpen: false});
+              break;
+          }
         }
       },
 
@@ -194,7 +241,6 @@ document.registerElement('quixpanel-app', class extends Component {
           delete step.selector;
         }
       });
-      debugger;
       API.get('arb_funnels', {
         events: JSON.stringify(this.state.funnels.steps),
         on: this.state.on,
@@ -301,6 +347,9 @@ if (window.location.hash) {
 if (!state.funnels || !state.funnels.steps) {
   state = {};
 }
+const saves = JSON.parse(localStorage.getItem('quixpanelSaves') || '[]');
+state.savedReports = saves;
+
 app.state = Object.assign(app.state, state);
 
 function queryParam(name) {

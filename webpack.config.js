@@ -4,7 +4,7 @@ var path = require("path");
 module.exports = {
   context: __dirname,
   entry: {
-    app: ["./app.js"]
+    app: ["./index.js"]
   },
   output: {
     path: path.resolve(__dirname, "build"),
@@ -27,9 +27,16 @@ module.exports = {
         }
       },
       {
+         test: /\.styl$/,
+         loader: 'raw!autoprefixer-loader!stylus-loader',
+         include: path.resolve(__dirname, 'bookmark-drawer'),
+      },
+      {
         test: /\.styl$/,
         loader: 'style-loader!css-loader!autoprefixer-loader!stylus-loader',
+        exclude: path.resolve(__dirname, 'bookmark-drawer'),
       },
+
     ]
   },
 };

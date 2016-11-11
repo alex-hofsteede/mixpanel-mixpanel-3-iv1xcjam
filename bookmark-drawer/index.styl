@@ -1,0 +1,212 @@
+@import "~mixpanel-common/stylesheets/defaults/index"
+
+hmargin = 38px
+mp-black = #2c3642
+
+.search
+  border-bottom 1px solid grey-100
+  font-size 16px
+  margin 24px hmargin 0 hmargin
+  padding-bottom 20px
+  svg-icon('search', -3px, 7px, 27px, mp-black)
+  input
+    border none
+    color #92949d
+    font-size 18px
+    line-height 38px
+    outline none
+    padding-left 32px
+    width 548px
+  .drawer-close-wrapper
+    position absolute
+    right 0
+    top 0
+    .drawer-close
+      cursor pointer
+      display inline-block
+      height 27px
+      width 32px
+      svg-icon('x', 8px, 7px, 30px, grey-300)
+      &:hover::before
+        background-color blue-300
+
+.filter
+  background-color grey-100
+  border-radius 50px
+  margin 34px hmargin
+  padding 2px
+
+  .toggle-option
+    background-color grey-100
+    border-radius 50px
+    color grey-700
+    display inline-block
+    font-size 11px
+    font-weight bold
+    padding 9px 0
+    text-align center
+    text-transform uppercase
+    width 50%
+    &.toggle-selected
+      background-color #fff
+    &:not(.toggle-selected)
+      cursor pointer
+      &:hover
+        color blue-300
+
+.bookmarks
+  background-color #f9fafc
+  height 100%
+  width 690px
+
+  .bookmark-row
+    align-items center
+    border-bottom 1px solid grey-150
+    cursor pointer
+    display flex
+    font-size 14px
+    height 50px
+    padding-left 72px
+    position relative
+
+    &.header-row
+      background-color #fff
+      color grey-700
+      font-size 11px
+      font-weight bold
+      text-transform uppercase
+
+      .bookmark-col
+        cursor pointer
+        &.field-selected
+          color mp-black
+        &:hover .sort-arrows
+          opacity 1
+        &:not(.field-selected):hover .sort-arrows::before
+          background-color grey-700
+        .sort-arrows
+          display inline-block
+          height 10px
+          margin-left 10px
+          opacity 0
+          width 8px
+          svg-icon('caret-up', -3px, -3px, 18px, mp-black)
+          &.sort-desc
+            svg-icon('caret-down', -3px, -3px, 18px, mp-black)
+          &.sort-selected
+            opacity 1
+
+    &.body-row
+      color grey-700
+      &:hover
+        background-color #fff
+        .name
+          color mp-black
+        .delete-icon
+          display inline-block
+
+      .name
+        cursor pointer
+      .modified
+        font-size 13px
+      .user
+        .user-icon
+          margin-left 12px
+
+          // TODO mixpanel-common
+          border-radius 50%
+          color #fff
+          cursor default
+          display inline-block
+          font-family 'Helvetica Neue', Helvetica, Arial, sans-serif
+          font-size 11px
+          font-weight 600
+          height 26px
+          line-height 26px
+          text-align center
+          width 26px
+          background-color #1e7171
+          &.color-A
+            background-color #33bcbd
+          &.color-B
+            background-color #2da9aa
+          &.color-C
+            background-color #289697
+          &.color-D
+            background-color #238384
+          &.color-E
+            background-color #64ade8
+          &.color-F
+            background-color #5a9bd1
+          &.color-G
+            background-color #508bba
+          &.color-H
+            background-color #4679a2
+          &.color-I
+            background-color #3c688b
+          &.color-J
+            background-color #a28ccb
+          &.color-K
+            background-color #917db6
+          &.color-L
+            background-color #826fa2
+          &.color-M
+            background-color #71618d
+          &.color-N
+            background-color #61547a
+          &.color-O
+            background-color #d97b7f
+          &.color-P
+            background-color #c36e72
+          &.color-Q
+            background-color #ad6366
+          &.color-R
+            background-color #985559
+          &.color-S
+            background-color #e8bc65
+          &.color-T
+            background-color #d0a95b
+          &.color-U
+            background-color #b99651
+          &.color-V
+            background-color #a28347
+          &.color-W
+            background-color #f6893b
+          &.color-X
+            background-color #dd7b35
+          &.color-Y
+            background-color #c46e30
+          &.color-Z
+            // use default
+
+      &.icon-bar
+        svg-icon('bar', 36px, 14px, 22px, mp-seafoam)
+      &.icon-line
+        svg-icon('line', 36px, 14px, 22px, blue-300)
+      &.icon-table
+        svg-icon('table', 36px, 14px, 22px, mp-orange)
+
+    .bookmark-col
+      display inline-block
+
+      &.name
+        width 350px
+      &.type
+        width 114px
+      &.modified
+        width 104px
+      &.delete
+        height 20px
+        width 50px
+
+    .delete-icon
+      background-repeat no-repeat
+      cursor pointer
+      display none
+      height 16px
+      overflow hidden
+      position absolute
+      top 16px
+      width 15px
+      &:hover
+        background-position -15px 0

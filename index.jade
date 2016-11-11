@@ -76,12 +76,17 @@
           input(id="funnelStep#{idx}FilterInput" type="text" placeholder="Type an filter expression..." value=step.selector onkeyup=$helpers.funnelsFilterChanged attributes={idx})
 
   .row.action-row
-    mp-button.mp-button-primary(onclick=$helpers.runQuery attribute={icon: 'refresh'}) Run query
+    mp-button.mp-button-primary(onclick=$helpers.runQuery attributes={icon: 'refresh'}) Run query
+    mp-button.mp-button-secondary(onclick=$helpers.saveReport attributes={icon: 'dashboard-add-to'}) Save
+    mp-button.mp-button-secondary(onclick=$helpers.viewSavedReports attributes={icon: 'saved-reports'}) View saved reports
 
   #chart
+
+  bookmark-drawer(attributes={bookmarks: JSON.stringify(savedReports), open: savedReportsOpen} onchange=$helpers.handleBookmarkChanged)
 
   if error
     mp-modal(attributes={alert: true, closeable: true} onchange=$helpers.errorAlertChange)
       .alert-body(attributes={'slot-body': true})
         .title An error occurred
         .message #{error}
+

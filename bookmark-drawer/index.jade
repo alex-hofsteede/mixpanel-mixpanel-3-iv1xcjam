@@ -1,0 +1,47 @@
+mixin header-col(text, field)
+  - const fieldSelected = sortField === field;
+  .bookmark-col(
+    class={
+      [field]: true,
+      'field-selected': fieldSelected,
+    }
+    onclick=() => $helpers.clickHeader(field)
+  )
+    span= text
+    .sort-arrows(class={
+      [`sort-${sortOrder}`]: true,
+      'sort-selected': fieldSelected,
+    })
+
+mp-drawer(
+  attributes={
+    'drawer-width': 690,
+    'open': $helpers.isOpen(),
+  }
+  onchange=$helpers.drawerChange
+)
+  .search
+    input(
+      type="text"
+      placeholder="Search reports"
+      value=nameFilter
+      onblur=$helpers.changeNameFilter
+      onchange=$helpers.changeNameFilter
+      onfocusout=$helpers.changeNameFilter
+      oninput=$helpers.changeNameFilter
+      onkeypress=$helpers.changeNameFilter
+    )
+    .drawer-close-wrapper
+      .drawer-close(onclick=$helpers.close)
+  .bookmarks
+    .bookmark-row.header-row
+      +header-col('Name', 'name')
+      +header-col('Type', 'type')
+      +header-col('Last modified', 'modified')
+    each bookmark in $helpers.bookmarksForDisplay()
+      .bookmark-row.body-row
+        .bookmark-col.name(onclick=() => $helpers.clickBookmark(bookmark))= bookmark.name
+        .bookmark-col.type= bookmark.type
+        .bookmark-col.modified= $helpers.modifiedStr(bookmark)
+        .bookmark-col.delete
+          svg-icon(attributes={icon: 'trashcan'}  onclick=() => $helpers.clickDelete(bookmark))
