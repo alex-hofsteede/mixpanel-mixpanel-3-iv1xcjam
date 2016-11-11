@@ -172,7 +172,6 @@
 	              delete step.selector;
 	            }
 	          });
-	          debugger;
 	          API.get('arb_funnels', {
 	            events: JSON.stringify(this.state.funnels.steps),
 	            on: this.state.on,
@@ -288,7 +287,9 @@
 	          from_date: '2012-01-01',
 	          to_date: (0, _moment2.default)().format('YYYY-MM-DD'),
 	          unit: 'month',
-	          type: 'unique'
+	          type: 'unique',
+	          savedReports: [],
+	          savedReportsOpen: false
 	        },
 
 	        helpers: {
@@ -399,6 +400,51 @@
 	            if (e.detail.state === 'closed') {
 	              _this4.update({ error: null });
 	            }
+	          },
+	          saveReport: function saveReport(e) {
+	            var reportState = JSON.parse(JSON.stringify(_this4.state));
+	            delete reportState.savedReports;
+	            var name = void 0;
+	            switch (_this4.state.queryType) {
+	              case 'segmentation':
+	                name = _this4.state.segmentation.event;
+	                break;
+	              case 'funnels':
+	                name = _this4.state.funnels.steps[0].event + ' -> ' + _this4.state.funnels.steps[1].event;
+	                break;
+	            }
+	            var report = {
+	              id: new Date().getTime(),
+	              name: name,
+	              type: _this4.state.queryType,
+	              modified: (0, _moment2.default)(),
+	              state: reportState
+	            };
+	            var saves = JSON.parse(localStorage.getItem('quixpanelSaves') || '[]');
+	            saves.push(report);
+	            _this4.update({ savedReports: saves });
+	            localStorage.setItem('quixpanelSaves', JSON.stringify(saves));
+	          },
+	          viewSavedReports: function viewSavedReports(e) {
+	            _this4.update({ savedReportsOpen: true });
+	          },
+	          handleBookmarkChanged: function handleBookmarkChanged(e) {
+	            switch (e.detail.action) {
+	              case 'choose':
+	                _this4.update(e.detail.bookmark.state);
+	                _this4.executeQuery();
+	                break;
+	              case 'delete':
+	                var _saves = JSON.parse(localStorage.getItem('quixpanelSaves') || '[]').filter(function (savedReport) {
+	                  return savedReport.id !== e.detail.bookmarkId;
+	                });
+	                _this4.update({ savedReports: _saves });
+	                localStorage.setItem('quixpanelSaves', JSON.stringify(_saves));
+	                break;
+	              case 'close':
+	                _this4.update({ savedReportsOpen: false });
+	                break;
+	            }
 	          }
 	        },
 
@@ -422,6 +468,9 @@
 	if (!state.funnels || !state.funnels.steps) {
 	  state = {};
 	}
+	var saves = JSON.parse(localStorage.getItem('quixpanelSaves') || '[]');
+	state.savedReports = saves;
+
 	app.state = Object.assign(app.state, state);
 
 	function queryParam(name) {
@@ -42981,7 +43030,7 @@
 
 	function _jade_template_fn(locals) {
 	  locals = locals || {};;;
-	  var result_of_with = (function($helpers, Boolean, apiSecret, bucketMode, buckets, error, from_date, funnels, on, queryType, segmentation, to_date, unit, where) {
+	  var result_of_with = (function($helpers, Boolean, JSON, apiSecret, bucketMode, buckets, error, from_date, funnels, on, queryType, savedReports, savedReportsOpen, segmentation, to_date, unit, where) {
 	    var h = __webpack_require__(51);
 	    return {
 	      value: (h("div", {
@@ -43222,18 +43271,32 @@
 	          "className": [].concat('row').concat('action-row').filter(Boolean).join(' '),
 	        }, [h("mp-button", {
 	          "onclick": $helpers.runQuery,
-	          "attribute": {
+	          "attributes": {
 	            icon: 'refresh'
 	          },
 	          "className": [].concat('mp-button-primary').filter(Boolean).join(' '),
-	        }, ["Run query"])]));
+	        }, ["Run query"]), h("mp-button", {
+	          "onclick": $helpers.saveReport,
+	          "attributes": {
+	            icon: 'dashboard-add-to'
+	          },
+	          "className": [].concat('mp-button-secondary').filter(Boolean).join(' '),
+	        }, ["Save"]), h("mp-button", {
+	          "onclick": $helpers.viewSavedReports,
+	          "attributes": {
+	            icon: 'saved-reports'
+	          },
+	          "className": [].concat('mp-button-secondary').filter(Boolean).join(' '),
+	        }, ["View saved reports"]), ]));
 	        __jade_nodes.push(h("div", {
 	          "id": 'chart',
 	        }));
 	        __jade_nodes.push(h("bookmark-drawer", {
 	          "attributes": {
-	            open: true
+	            bookmarks: JSON.stringify(savedReports),
+	            open: savedReportsOpen
 	          },
+	          "onchange": $helpers.handleBookmarkChanged,
 	        }));
 	        __jade_nodes.push((error) ? (h("mp-modal", {
 	          "attributes": {
@@ -43254,7 +43317,7 @@
 	        return __jade_nodes
 	      }).call(this)]))
 	    };
-	  }.call(this, "$helpers" in locals ? locals.$helpers : typeof $helpers !== "undefined" ? $helpers : undefined, "Boolean" in locals ? locals.Boolean : typeof Boolean !== "undefined" ? Boolean : undefined, "apiSecret" in locals ? locals.apiSecret : typeof apiSecret !== "undefined" ? apiSecret : undefined, "bucketMode" in locals ? locals.bucketMode : typeof bucketMode !== "undefined" ? bucketMode : undefined, "buckets" in locals ? locals.buckets : typeof buckets !== "undefined" ? buckets : undefined, "error" in locals ? locals.error : typeof error !== "undefined" ? error : undefined, "from_date" in locals ? locals.from_date : typeof from_date !== "undefined" ? from_date : undefined, "funnels" in locals ? locals.funnels : typeof funnels !== "undefined" ? funnels : undefined, "on" in locals ? locals.on : typeof on !== "undefined" ? on : undefined, "queryType" in locals ? locals.queryType : typeof queryType !== "undefined" ? queryType : undefined, "segmentation" in locals ? locals.segmentation : typeof segmentation !== "undefined" ? segmentation : undefined, "to_date" in locals ? locals.to_date : typeof to_date !== "undefined" ? to_date : undefined, "unit" in locals ? locals.unit : typeof unit !== "undefined" ? unit : undefined, "where" in locals ? locals.where : typeof where !== "undefined" ? where : undefined));
+	  }.call(this, "$helpers" in locals ? locals.$helpers : typeof $helpers !== "undefined" ? $helpers : undefined, "Boolean" in locals ? locals.Boolean : typeof Boolean !== "undefined" ? Boolean : undefined, "JSON" in locals ? locals.JSON : typeof JSON !== "undefined" ? JSON : undefined, "apiSecret" in locals ? locals.apiSecret : typeof apiSecret !== "undefined" ? apiSecret : undefined, "bucketMode" in locals ? locals.bucketMode : typeof bucketMode !== "undefined" ? bucketMode : undefined, "buckets" in locals ? locals.buckets : typeof buckets !== "undefined" ? buckets : undefined, "error" in locals ? locals.error : typeof error !== "undefined" ? error : undefined, "from_date" in locals ? locals.from_date : typeof from_date !== "undefined" ? from_date : undefined, "funnels" in locals ? locals.funnels : typeof funnels !== "undefined" ? funnels : undefined, "on" in locals ? locals.on : typeof on !== "undefined" ? on : undefined, "queryType" in locals ? locals.queryType : typeof queryType !== "undefined" ? queryType : undefined, "savedReports" in locals ? locals.savedReports : typeof savedReports !== "undefined" ? savedReports : undefined, "savedReportsOpen" in locals ? locals.savedReportsOpen : typeof savedReportsOpen !== "undefined" ? savedReportsOpen : undefined, "segmentation" in locals ? locals.segmentation : typeof segmentation !== "undefined" ? segmentation : undefined, "to_date" in locals ? locals.to_date : typeof to_date !== "undefined" ? to_date : undefined, "unit" in locals ? locals.unit : typeof unit !== "undefined" ? unit : undefined, "where" in locals ? locals.where : typeof where !== "undefined" ? where : undefined));
 	  if (result_of_with) return result_of_with.value;
 	}
 	module.exports = _jade_template_fn;
@@ -43266,6 +43329,8 @@
 	'use strict';
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
 	var _moment = __webpack_require__(68);
 
@@ -43304,6 +43369,20 @@
 	    key: 'close',
 	    value: function close() {
 	      this.drawer.close();
+	    }
+	  }, {
+	    key: 'attachedCallback',
+	    value: function attachedCallback() {
+	      _get(_class.prototype.__proto__ || Object.getPrototypeOf(_class.prototype), 'attachedCallback', this).apply(this, arguments);
+	      this.state.bookmarks = this.getJSONAttribute('bookmarks');
+	    }
+	  }, {
+	    key: 'attributeChangedCallback',
+	    value: function attributeChangedCallback(attr) {
+	      _get(_class.prototype.__proto__ || Object.getPrototypeOf(_class.prototype), 'attributeChangedCallback', this).apply(this, arguments);
+	      if (attr === 'bookmarks') {
+	        this.state.bookmarks = this.getJSONAttribute('bookmarks');
+	      }
 	    }
 	  }, {
 	    key: 'config',
@@ -43355,7 +43434,7 @@
 	          clickBookmark: function clickBookmark(bookmark) {
 	            _this2.dispatchEvent(new CustomEvent('change', { detail: {
 	                action: 'choose',
-	                bookmarkId: bookmark.id
+	                bookmark: bookmark
 	              } }));
 	            _this2.close();
 	          },
@@ -43460,7 +43539,7 @@
 	      this.update({ closing: true });
 	      window.setTimeout(function () {
 	        _this2.removeAttribute('open');
-	        _this2.dispatchEvent(new CustomEvent('change', { detail: { open: false } }));
+	        _this2.dispatchEvent(new CustomEvent('change', { detail: { action: 'close', open: false } }));
 	      }, 150);
 	    }
 	  }, {
@@ -43617,9 +43696,9 @@
 	            "className": [].concat('bookmark-row').concat('header-row').filter(Boolean).join(' '),
 	          }, [jade_mixins['header-col'].call(this, 'Name', 'name'), jade_mixins['header-col'].call(this, 'Type', 'type'), jade_mixins['header-col'].call(this, 'Last modified', 'modified'), ]), ($helpers.bookmarksForDisplay()).map(function(bookmark, $index) {
 	            return h("div", {
-	              "onclick": () => $helpers.clickBookmark(bookmark),
 	              "className": [].concat('bookmark-row').concat('body-row').filter(Boolean).join(' '),
 	            }, [h("div", {
+	              "onclick": () => $helpers.clickBookmark(bookmark),
 	              "className": [].concat('bookmark-col').concat('name').filter(Boolean).join(' '),
 	            }, (bookmark.name)), h("div", {
 	              "className": [].concat('bookmark-col').concat('type').filter(Boolean).join(' '),
@@ -43627,9 +43706,11 @@
 	              "className": [].concat('bookmark-col').concat('modified').filter(Boolean).join(' '),
 	            }, ($helpers.modifiedStr(bookmark))), h("div", {
 	              "className": [].concat('bookmark-col').concat('delete').filter(Boolean).join(' '),
-	            }, [h("div", {
+	            }, [h("svg-icon", {
+	              "attributes": {
+	                icon: 'trashcan'
+	              },
 	              "onclick": () => $helpers.clickDelete(bookmark),
-	              "className": [].concat('delete-icon').filter(Boolean).join(' '),
 	            })]), ])
 	          }), ]
 	        ]), ]
